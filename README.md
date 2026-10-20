@@ -1,22 +1,71 @@
-# NoteHub · 你的笔记，你自己的服务器
+# NoteHub · 专为理工科学生打造的轻量笔记
 
-一个**完全自托管**的多端笔记应用：网页站点 + 本机零依赖同步服务 + Electron 桌面版 + Capacitor 安卓版。
-笔记数据只落在你自己的电脑上——不注册、不上传、不看任何第三方云。
+> **258 KB、零框架、断网可用**：能排版数学公式，能高亮代码，手机和电脑自动同步。
+> 上课记公式、写实验报告、整理代码片段、复盘错题——一个 App 全装下。
 
-## 为什么是自托管
+**为什么专门为理工类专业的学生做？** 因为文科笔记只要「打字 + 排版」，理工科笔记还要**公式**和**代码**。
+大多数轻量笔记工具在这两点上都要求你装插件、连外网、或者干脆不支持；NoteHub 把这两件事做进了内核，
+并且整个应用只有 258 KB。
 
-- **数据不出本机**：笔记存在 `%USERPROFILE%\NoteHub\data.json`，同步打到你自己机器的服务上。
-- **服务端零依赖**：`notehub_server.js` 只用 Node 内置模块，单文件即可跑起来。
-- **一套前端三端复用**：网页、桌面版、安卓版共用同一个 `site/`，改一处三端同时生效。
+## 四个硬指标
 
-## 功能
+### 一、极致轻量
 
-- Markdown 富文本编辑：`contenteditable` 所见即所得，字号与颜色直接渲染，不露源码标签
-- 代码高亮与公式渲染（自带 `highlight.js` / `math.js` / `markdown.js`，不依赖 CDN）
-- 多设备同步与冲突合并：按 `note.id` 合并，`updatedAt` 大者胜；删除走墓碑机制
-- 局域网直连（同一 Wi-Fi，速度最快）+ cloudflared 隧道外网访问
-- 服务端每次写入前自动保留最近 5 份快照（`data.json.bak.1~5`），误删可回滚
-- 桌面版常驻托盘、支持开机自启；安装版与便携版双产物
+- 网页版整个 `site/` 只有 **12 个文件、258 KB**，其中业务代码约 213 KB
+- **没有框架、没有打包步骤、不用 npm install**——打开浏览器就能用
+- 同步服务 `notehub_server.js` **314 行、零依赖**，只用 Node 内置模块，一个文件跑起来
+- **没有一行 CDN 外链**：公式渲染器、高亮器、Markdown 解析器全部本地自带，断网、内网、实验室没外网也能正常编辑
+- 前端核心逻辑 `app.js` 1620 行，代码全部可读可改
+
+### 二、代码高亮
+
+内置自研轻量高亮器（`highlight.js`，658 行，配色对应 VS Code 默认深色主题 Dark+），开箱覆盖：
+
+`C` `C++` `C#` `Java` `Python` `JavaScript` `TypeScript` `Go` `Rust` `PHP` `Ruby` `SQL` `HTML` `XML` `Vue` `CSS` `SCSS` `JSON` `YAML` `Bash / Shell` `Markdown` `Dockerfile` `Makefile` `INI` `TOML` `Properties`
+
+代码块直接在笔记里按行高亮，实验报告、课程设计、刷题记录贴进去就能看。
+
+### 三、数学渲染
+
+内置轻量 LaTeX 子集渲染器（`math.js`，354 行，**纯 HTML + CSS 排版，不依赖 KaTeX / MathJax**），针对数学笔记的常用写法：
+
+- 分数 `\frac` `\dfrac` `\tfrac`、根式 `\sqrt{x}` `\sqrt[n]{x}`
+- 上下标 `x^{2}` `a_{i}`，正体文本 `\text{}` `\mathrm{}`
+- 大型算符 `\lim` `\sum` `\prod` 及其上下限
+- 多行对齐 `\begin{aligned}...\end{aligned}`、上划线 `\bar{x}`、上下叠放 `\overset{?}{=}`
+- 定界符 `\left( \right)` `\big(` `\Big[`
+- 希腊字母、逻辑与集合符号、间距命令 `\,` `\;` `\quad`
+
+**写错了也不会崩**：未知命令按正体文本原样输出，一个手误不会毁掉整段推导。
+
+### 四、手机 · 电脑 · 云同步
+
+同一份笔记，在实验室台式机、宿舍笔记本、手机上随时接着改。
+
+| 场景 | 怎么连 |
+| --- | --- |
+| 同一 Wi-Fi（推荐，最快） | 直连本机服务 `http://<内网IP>:8080`，地址固定 |
+| 不同网络 / 在外 | cloudflared 隧道 `https://xxxx.trycloudflare.com`（重启会变，可重新填入） |
+
+- **数据在你自己的电脑上**：笔记落在 `data.json`，同步打到自己机器的服务，不经过任何第三方云
+- **冲突自动合并**：按 `note.id` 合并、`updatedAt` 大者胜，两个设备同时改同一条不会互相覆盖丢失
+- **删除也有记录**：墓碑机制保留 90 天，误删可从其他设备恢复
+- **双保险**：服务端每次写入前自动保留最近 5 份快照 `data.json.bak.1~5`
+
+## 打开就能懂：内置三篇理工科示例笔记
+
+- **Python 学习笔记：字符串 / 列表 / 字典**
+- **高等数学笔记：高阶无穷小**
+- **数理逻辑与集合论笔记：命题运算与主合取范式**
+
+首次打开就有这三篇真实笔记（含公式、代码块与表格），能直接看出公式和代码是怎么渲染的。
+
+## 理工科的典型用法
+
+- **课堂速记**：老师写推导，你直接敲 LaTeX，公式当场成形，不用切 App
+- **实验报告 / 课程设计**：代码块贴进去自动高亮，步骤、参数、结论混排
+- **错题与证明整理**：公式、列表、表格、代码同框，复盘一遍就够
+- **跨场地作业**：实验室台式机写一半，回宿舍用手机接着改，进度不断
 
 ## 目录结构
 
@@ -25,7 +74,7 @@ site/                    纯前端站点（网页版入口，也是桌面 / 安�
   index.html  manifest.webmanifest  sw.js
   css/styles.css
   js/app.js  markdown.js  highlight.js  math.js  seeds.js
-notehub_server.js        零依赖同步服务（静态分发 + /api/sync）
+notehub_server.js        零依赖同步服务（静态分发 + /api/sync），314 行
 启动NoteHub.bat           一键启动：本机服务 + 公网隧道，并打印局域网地址
 assets/                  应用图标源文件与生成脚本
 desktop/                 Electron 桌面版工程
@@ -48,7 +97,7 @@ node notehub_server.js 8080
 双击 `启动NoteHub.bat`：它会打印本机内网地址（手机连同一 Wi-Fi 时用它直连），并另开一个窗口跑 cloudflared 隧道。
 
 - 同一 Wi-Fi：`http://<你的内网IP>:8080`
-- 不同网络：使用隧道窗口里显示的 `https://xxxx.trycloudflare.com`（**每次重启都会变**，需重新填入手机端）
+- 不同网络：用隧道窗口里显示的 `https://xxxx.trycloudflare.com`（**每次重启都会变**，需重新填入手机端）
 
 cloudflared 不随仓库分发（52 MB 二进制）。到 [cloudflared Releases](https://github.com/cloudflare/cloudflared/releases) 下载 `cloudflared.exe` 放到仓库根目录即可。
 
