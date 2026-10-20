@@ -1,0 +1,31 @@
+# ===== 隐私与密钥：绝不入库 =====
+# 你的真实笔记数据与同步密钥
+data.json
+data.json.bak.*
+key.txt
+# 安卓签名文件（含私钥与口令）
+*.keystore
+keystore.properties
+android-app/android/local.properties
+
+# ===== 依赖与构建产物 =====
+node_modules/
+dist-desktop/
+desktop/_generated/
+android-app/www/
+android-app/android/.gradle/
+android-app/android/build/
+android-app/android/app/build/
+android-app/android/capacitor-cordova-android-plugins/
+android-app/android/app/src/main/assets/public/
+android-app/android/app/src/main/assets/capacitor.config.json
+android-app/android/app/src/main/assets/capacitor.plugins.json
+
+# 可执行文件与安装包：统一走 GitHub Releases 发布
+*.exe
+*.apk
+*.idsig
+
+# 系统垃圾
+Thumbs.db
+.DS_Store

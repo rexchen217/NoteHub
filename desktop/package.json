@@ -1,0 +1,58 @@
+{
+  "name": "notehub-desktop",
+  "version": "1.0.0",
+  "description": "NoteHub 笔记桌面版（内嵌本机同步服务）",
+  "main": "main.js",
+  "author": "NoteHub",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "prestart": "node prepare.js",
+    "start": "electron .",
+    "predist": "node prepare.js",
+    "dist": "electron-builder --win portable nsis"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.notehub.desktop",
+    "productName": "NoteHub",
+    "asar": true,
+    "compression": "maximum",
+    "afterPack": "after-pack.js",
+    "directories": {
+      "output": "../dist-desktop"
+    },
+    "files": [
+      "main.js",
+      "package.json",
+      "_generated/notehub_server.js",
+      "tray-16.png",
+      "tray-32.png",
+      "window-icon.png",
+      {
+        "from": "../site",
+        "to": "site"
+      }
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "NoteHub-Desktop.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "NoteHub-Setup.exe",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

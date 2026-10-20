@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#1e1e1e">
+<meta name="description" content="Markdown 笔记收纳：记录、整理、检索，数据保存在浏览器本地。">
+<title>NoteHub · Markdown 笔记</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="NoteHub">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ========== 侧边栏 ========== -->
+  <aside class="sidebar" id="sidebar" aria-label="笔记列表">
+    <div class="sidebar-head">
+      <div class="brand">
+        <span class="brand-mark">&lt;/&gt;</span>
+        <span class="brand-name">NoteHub</span>
+      </div>
+      <button class="icon-btn sidebar-close" id="sidebarClose" type="button" aria-label="关闭列表">✕</button>
+    </div>
+
+    <div class="sidebar-tools">
+      <div class="search-box">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="searchInput" type="search" autocomplete="off" placeholder="搜索标题、正文或标签">
+        <button class="search-clear" id="searchClear" type="button" aria-label="清除搜索" hidden>✕</button>
+      </div>
+      <button class="btn-primary" id="newNoteBtn" type="button">
+        <span class="btn-plus">＋</span> 新建笔记
+      </button>
+    </div>
+
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-head">
+        <span>标签筛选</span>
+        <button class="link-btn" id="clearFilterBtn" type="button" hidden>清除筛选</button>
+      </div>
+      <div class="tag-filter" id="tagFilter"></div>
+    </div>
+
+    <div class="note-list" id="noteList" role="list"></div>
+
+    <div class="sync-bar" id="syncBar">
+      <button class="sync-status" id="syncStatusBtn" type="button" title="点击立即同步">
+        <span class="sync-dot unconfigured" id="syncDot"></span>
+        <span class="sync-text" id="syncText">未开启云同步</span>
+      </button>
+      <button class="link-btn" id="syncSettingsBtn" type="button">设置</button>
+    </div>
+
+    <div class="sidebar-foot">
+      <span id="noteCount">0 条笔记</span>
+      <button class="link-btn danger" id="clearAllBtn" type="button">清空全部</button>
+    </div>
+  </aside>
+
+  <div class="overlay" id="overlay" hidden></div>
+
+  <!-- ========== 主区域 ========== -->
+  <main class="main">
+
+    <header class="topbar">
+      <button class="icon-btn only-mobile" id="menuBtn" type="button" aria-label="打开笔记列表">☰</button>
+      <span class="topbar-title" id="topbarTitle">我的笔记</span>
+      <button class="icon-btn only-mobile" id="newNoteBtnTop" type="button" aria-label="新建笔记">＋</button>
+    </header>
+
+    <!-- 编辑态 -->
+    <section class="editor" id="editor">
+      <div class="editor-head">
+        <input id="titleInput" class="title-input" type="text" autocomplete="off" placeholder="无标题笔记">
+        <div class="meta-row">
+          <span class="meta-info" id="metaInfo">—</span>
+          <button class="ai-btn" id="aiPolishBtn" type="button" title="用 AI 润色当前笔记正文">AI 润色</button>
+          <div class="mode-switch" id="modeSwitch" role="group" aria-label="视图模式">
+            <button type="button" data-mode="edit" class="active">编辑</button>
+            <button type="button" data-mode="split" class="hide-mobile">分屏</button>
+            <button type="button" data-mode="preview">预览</button>
+          </div>
+          <button class="icon-btn danger" id="deleteBtn" type="button" title="删除当前笔记" aria-label="删除当前笔记">🗑</button>
+        </div>
+      </div>
+
+      <div class="tag-editor" id="tagEditor">
+        <span class="tag-label">标签</span>
+        <div class="tag-chips" id="tagChips"></div>
+        <input id="tagInput" class="tag-input" type="text" autocomplete="off" placeholder="输入标签后回车">
+      </div>
+
+      <div class="style-bar no-sel" id="styleBar">
+        <button type="button" class="style-toggle" id="styleToggle" aria-expanded="true"
+          title="收起 / 展开样式栏">
+          <span class="style-toggle-icon" aria-hidden="true">▾</span>
+          <span class="style-toggle-text">样式</span>
+        </button>
+        <span class="style-hint" id="styleHint">先在正文里选中文字，再设置字号 / 颜色</span>
+        <div class="style-controls">
+          <span class="style-label">字号</span>
+          <div class="style-size">
+            <button type="button" class="style-step" id="fontMinus" aria-label="减小选中文字的字号">A−</button>
+            <input type="range" id="fontSizeRange" min="11" max="30" step="0.5" aria-label="调整选中文字的字号">
+            <button type="button" class="style-step" id="fontPlus" aria-label="增大选中文字的字号">A＋</button>
+            <span class="style-size-val" id="fontSizeVal">13.5px</span>
+          </div>
+          <span class="style-label">颜色</span>
+          <div class="style-colorwrap">
+            <div class="style-colors" id="styleColors" role="group" aria-label="选中文字的颜色"></div>
+            <input type="color" id="fontColorPicker" class="style-color-picker" aria-label="自定义选中文字的颜色" title="自定义颜色">
+          </div>
+          <button type="button" class="style-reset" id="styleResetBtn" title="清除选中文字的字号与颜色">重置</button>
+        </div>
+        <span class="style-spacer"></span>
+        <button type="button" class="save-btn" id="saveBtn" title="保存当前笔记（Ctrl / Cmd + S）">保存</button>
+      </div>
+
+      <div class="panes mode-split" id="panes">
+        <div class="pane pane-edit">
+          <div id="contentInput" class="content-input" contenteditable="true" spellcheck="false"
+            role="textbox" aria-multiline="true" aria-label="笔记正文"
+            data-placeholder="开始记录…&#10;&#10;支持 Markdown 语法，选中文字后可设置字号与颜色"></div>
+        </div>
+        <div class="pane pane-preview">
+          <div class="markdown-body" id="previewPane"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 空态 -->
+    <section class="empty-state" id="emptyState" hidden>
+      <div class="empty-art">&lt;/&gt;</div>
+      <h2 id="emptyTitle">还没有笔记</h2>
+      <p id="emptyDesc">点击「新建笔记」开始你的第一条 Markdown 记录。</p>
+      <button class="btn-primary" id="emptyNewBtn" type="button"><span class="btn-plus">＋</span> 新建笔记</button>
+    </section>
+
+  </main>
+</div>
+
+<!-- ========== 云同步设置 ========== -->
+<div class="modal" id="syncModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle">
+    <div class="modal-head">
+      <h2 id="syncModalTitle">云同步设置</h2>
+      <button class="icon-btn" id="syncModalClose" type="button" aria-label="关闭">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-hint">
+        笔记保存在你自己的电脑上：手机和电脑都连到同一个 NoteHub 同步服务即可互通。
+        电脑上运行 <code>notehub_server.js</code>，手机浏览器打开同一个地址即可。
+      </p>
+      <label class="field">
+        <span class="field-label">服务器地址（留空表示用当前网站）</span>
+        <input id="syncServerInput" type="text" autocomplete="off" spellcheck="false" placeholder="https://xxx.trycloudflare.com">
+      </label>
+      <label class="field">
+        <span class="field-label">同步密钥</span>
+        <input id="syncKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="服务启动时打印的 32 位密钥">
+      </label>
+      <p class="modal-note" id="syncModalMsg"></p>
+    </div>
+    <div class="modal-foot">
+      <button class="link-btn danger" id="syncDisconnectBtn" type="button">断开连接</button>
+      <span class="modal-foot-spacer"></span>
+      <button class="btn-ghost" id="syncCancelBtn" type="button">取消</button>
+      <button class="btn-primary" id="syncSaveBtn" type="button">保存并同步</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== AI 润色 ========== -->
+<div class="modal" id="aiModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle">
+    <div class="modal-head">
+      <h2 id="aiModalTitle">AI 润色</h2>
+      <button class="icon-btn" id="aiModalClose" type="button" aria-label="关闭">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="ai-actions" id="aiActions">
+        <button type="button" class="ai-action active" data-ai="polish">润色</button>
+        <button type="button" class="ai-action" data-ai="concise">精简</button>
+        <button type="button" class="ai-action" data-ai="expand">扩写</button>
+        <button type="button" class="ai-action" data-ai="formal">更正式</button>
+      </div>
+      <p class="modal-hint">
+        选一种方式，AI 会基于当前笔记的<strong>正文</strong>生成新版本，确认无误后再替换。
+        标题、标签不受影响；代码块会原样保留。
+      </p>
+      <div class="ai-result" id="aiResult" hidden>
+        <div class="ai-result-head">
+          <span>生成结果</span>
+          <span class="ai-result-meta" id="aiResultMeta"></span>
+        </div>
+        <pre class="ai-result-body" id="aiResultBody"></pre>
+      </div>
+      <p class="modal-note" id="aiMsg"></p>
+      <details class="ai-config" id="aiConfigBox">
+        <summary>AI 服务设置</summary>
+        <label class="field">
+          <span class="field-label">接口地址（OpenAI 兼容，如 DeepSeek / Kimi / 通义）</span>
+          <input id="aiBaseUrlInput" type="text" autocomplete="off" spellcheck="false" placeholder="https://api.deepseek.com/v1">
+        </label>
+        <label class="field">
+          <span class="field-label">模型名称</span>
+          <input id="aiModelInput" type="text" autocomplete="off" spellcheck="false" placeholder="deepseek-chat">
+        </label>
+        <label class="field">
+          <span class="field-label">API Key（留空表示不修改已保存的）</span>
+          <input id="aiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…">
+        </label>
+        <button class="btn-primary ai-config-save" id="aiConfigSaveBtn" type="button">保存设置</button>
+        <p class="modal-note">Key 只保存在你这台电脑上（<code>ai.json</code>），不会发给浏览器，也不会随网页分发。</p>
+      </details>
+    </div>
+    <div class="modal-foot">
+      <span class="modal-foot-spacer"></span>
+      <button class="btn-ghost" id="aiCancelBtn" type="button">取消</button>
+      <button class="btn-primary" id="aiApplyBtn" type="button" hidden>替换正文</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="js/seeds.js"></script>
+<script src="js/highlight.js"></script>
+<script src="js/math.js"></script>
+<script src="js/markdown.js"></script>
+<script src="js/app.js"></script>
+<script>
+/* PWA：注册 Service Worker 让应用外壳离线可用（仅对 http(s) 生效） */
+if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+  navigator.serviceWorker.register('sw.js').catch(function () {});
+}
+</script>
+</body>
+</html>
